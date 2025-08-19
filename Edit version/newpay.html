@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إتمام الدفع</title>
+<style>
+body {
+    font-family: 'Cairo', sans-serif;
+    background: #878585;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+.container {
+    max-width: 500px;
+    margin: auto;
+    background: #7e7c7c;
+    padding: 20px;
+    margin-top: 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+.logo {
+    max-width: 150px;
+    margin-bottom: 20px;
+}
+select {
+    width: 100%;
+    padding: 12px;
+    margin: 15px 0;
+    border-radius: 8px;
+    border: 1px solid #000000;
+    font-size: 16px;
+}
+.payment-options {
+    text-align: right;
+}
+.payment-option {
+    display: flex;
+    align-items: center;
+    background: #f9f9f9;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+    border: 1px solid transparent;
+}
+.payment-option:hover {
+    background: #e8e8e8;
+    border-color: #ccc;
+}
+.payment-option img {
+    width: 40px;
+    height: auto;
+    margin-left: 10px;
+}
+input[type="radio"] {
+    margin-left: 10px;
+}
+button {
+    background: #000;
+    color: #fff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    margin-top: 15px;
+}
+button:hover {
+    background: #333;
+}
+.whatsapp-btn {
+    background: #25D366;
+    color: #fff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    margin-top: 10px;
+}
+.whatsapp-btn:hover {
+    background: #1ebe5b;
+}
+</style>
+</head>
+<body>
+ <div style="text-align:center; margin: 30px 0;">
+<img alt="Image" src="bodyb-removebg-preview.png" style="max-width: 200px; height: auto;"/>
+</div>
+
+<div id="cart-items"></div>
+<h3>الإجمالي: <span id="total">0</span> جنيه</h3>
+
+
+
+<h3>اختر طريقة الدفع:</h3>
+<div class="payment-options">
+    <label class="payment-option">
+      <input type="radio" name="payment" value="vodafone">
+      <img src="vodafone.jpeg" alt="Vodafone Cash"> فودافون كاش
+    </label>
+    <label class="payment-option">
+      <input type="radio" name="payment" value="etisalat">
+      <img src="etisalat.png" alt="Etisalat Cash"> اتصالات كاش
+    </label>
+</div>
+
+<p>اختار وسيلة الدفع المناسبة ليك , ادفع بيها , وخد سكرين للمعامله وابعتوا لينا مع اسمك والايميل</p>
+<button onclick="submitPayment()">إتمام الدفع</button>
+<button class="whatsapp-btn" onclick="sendWhatsApp()">إرسال الفاتورة على واتساب</button>
+
+<script>
+let cart = JSON.parse(localStorage.getItem('cart')) || [
+    {name: "منتج تجريبي", price: 100, qty: 2},
+    {name: "منتج آخر", price: 50, qty: 1}
+]; // بيانات افتراضية لو السلة فاضية
+
+let instapayLink = "https://ipn.eg/S/ziadprime/instapay/3fXCyn";
+let etisalatLink = "https://flous.page.link/PxYv";
+let vodafoneLink = "http://vf.eg/vfcash?id=mt&qrId=isXIEX";
+
+function getTotal() {
+    let total = 0;
+    cart.forEach(item => total += item.price * item.qty);
+    return total;
+}
+
+function displayCart() {
+    let cartItemsDiv = document.getElementById('cart-items');
+    cartItemsDiv.innerHTML = "";
+    cart.forEach(item => {
+        cartItemsDiv.innerHTML += `<p>${item.name} - ${item.qty} × ${item.price} جنيه</p>`;
+    });
+    document.getElementById('total').innerText = getTotal();
+}
+
+function submitPayment() {
+    let paymentSelected = document.querySelector('input[name="payment"]:checked');
+    if (!paymentSelected) {
+        alert("من فضلك اختر وسيلة الدفع");
+        return;
+    }
+    let total = getTotal();
+    let link = "";
+    switch(paymentSelected.value) {
+        case "vodafone":
+            link = `${vodafoneLink}&amount=${total}`;
+            break;
+        case "etisalat":
+            link = `${etisalatLink}&amount=${total}`;
+            break;
+        case "instapay":
+            link = `${instapayLink}&amount=${total}`;
+            break;
+    }
+    window.open(link, "_blank");
+}
+
+function sendWhatsApp() {
+    let packageSelected = document.getElementById("package").value;
+    let paymentSelected = document.querySelector('input[name="payment"]:checked');
+    let phoneNumber = "201148410398";
+    let message = "مرحباً، لقد قمت بالدفع لباقه: " + packageSelected + 
+                  (paymentSelected ? " عن طريق " + paymentSelected.value : "") + 
+                  ".\nتفاصيل المنتجات:\n";
+    cart.forEach(item => {
+        message += `${item.name} - ${item.qty} × ${item.price} جنيه\n`;
+    });
+    message += `الإجمالي: ${getTotal()} جنيه`;
+    let url = "https://wa.me/" + phoneNumber + "?text=" + encodeURIComponent(message);
+    window.open(url, "_blank");
+}
+
+displayCart();
+</script>
+
+</body>
+</html>
